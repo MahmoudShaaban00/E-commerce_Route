@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { CartContext } from '../../context/CartContext';
 import { FaPlus, FaMinus, FaTrashAlt } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 export default function Cart() {
   const [cartDetails, setCartDetails] = useState(null);
@@ -31,6 +32,10 @@ export default function Cart() {
     if (count < 1) return;
     let response = await updateCartItemCount(productId, count);
     setCartDetails(response.data.data);
+  }
+
+  function handleNavigateToCheckout() {
+    let nevagate = useNavigate();
   }
 
   useEffect(() => {
@@ -196,12 +201,12 @@ export default function Cart() {
           >
             Delete All Products
           </button>
-          <a
-            href="/checkout"
+          <button
+            onClick={handleNavigateToCheckout}
             className="w-full block text-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold shadow-md transition"
           >
             Proceed to Checkout
-          </a>
+          </button>
         </div>
       </div>
     </div>

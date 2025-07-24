@@ -1,16 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import Style from './ProductDetails.module.css';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { FaStar } from "react-icons/fa";
-import { Link } from 'react-router-dom';
+import { FaStar, FaSpinner } from "react-icons/fa";
 import Slider from "react-slick";
+import { CartContext } from '../../context/CartContext';
+import toast from 'react-hot-toast';
 
 export default function ProductDetails() {
   let { id, category } = useParams();
 
+  const { addProductToCart } = useContext(CartContext);
+
   const [productDetails, setProductDetails] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [loadingProductId, setLoadingProductId] = useState(null);
 
   const settings = {
     dots: true,
@@ -25,7 +29,7 @@ export default function ProductDetails() {
       .then(({ data }) => {
         setProductDetails(data.data);
       })
-      .catch(() => {});
+      .catch(() => { });
   }
 
   function getRelatedProducts(category) {
@@ -33,11 +37,11 @@ export default function ProductDetails() {
       .then(({ data }) => {
         const allProducts = data.data;
         const related = allProducts.filter(
-          (product) => product.category.name === category
+          (product) => product.category.name === category && product.id !== Number(id)
         );
         setRelatedProducts(related);
       })
-      .catch(() => {});
+      .catch(() => { });
   }
 
   useEffect(() => {
@@ -45,7 +49,33 @@ export default function ProductDetails() {
     getRelatedProducts(category);
   }, [id, category]);
 
-  // 🛡️ Prevent rendering until productDetails is loaded
+  async function addProduct(productId) {
+    setLoadingProductId(productId);
+
+    try {
+      let response = await addProductToCart(productId);
+
+      if (response.data.status === 'success') {
+        toast.success(response.data.message, {
+          duration: 2000,
+          position: 'bottom-left',
+        });
+      } else {
+        toast.error(response.data.message, {
+          duration: 2000,
+          position: 'bottom-left',
+        });
+      }
+    } catch (error) {
+      toast.error('Failed to add product to cart', {
+        duration: 2000,
+        position: 'bottom-left',
+      });
+    } finally {
+      setLoadingProductId(null);
+    }
+  }
+
   if (!productDetails) return <div className="p-6 text-center">Loading product...</div>;
 
   return (
@@ -68,7 +98,17 @@ export default function ProductDetails() {
               <span className='px-2 text-yellow-600'><FaStar /></span>
             </span>
           </div>
-          <button className='btn'>Add to cart</button>
+          <button
+            className='btn'
+            onClick={() => addProduct(productDetails.id)}
+            disabled={loadingProductId === productDetails.id}
+          >
+            {loadingProductId === productDetails.id ? (
+              <FaSpinner className='mx-auto animate-spin' />
+            ) : (
+              'Add to cart'
+            )}
+          </button>
         </div>
       </div>
 
@@ -90,9 +130,18 @@ export default function ProductDetails() {
                     <span className='px-2 text-yellow-600'><FaStar /></span>
                   </span>
                 </div>
-
-                <button className='btn'>Add to cart</button>
               </Link>
+              <button
+                className='btn'
+                onClick={() => addProduct(product.id)}
+                disabled={loadingProductId === product.id}
+              >
+                {loadingProductId === product.id ? (
+                  <FaSpinner className='mx-auto animate-spin' />
+                ) : (
+                  'Add to cart'
+                )}
+              </button>
             </div>
           </div>
         ))}
