@@ -36,6 +36,7 @@ export default function Cart() {
 
   function handleNavigateToCheckout() {
     let nevagate = useNavigate();
+    nevagate('/checkout');
   }
 
   useEffect(() => {
