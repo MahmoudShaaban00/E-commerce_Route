@@ -7,9 +7,12 @@ export const CartContext = createContext();
 export default function CartContextProvider(props) {
   const [numOfCartItems, setNumOfCartItems] = useState(0);
 
-  const headers = {
-    token: localStorage.getItem('userToken'),
-  };
+  useEffect(() => {
+    const token = localStorage.getItem('userToken');
+    if (token) {
+      getLoggedUserCart();
+    }
+  }, []);
 
   function showError(msg, error) {
     const errorMsg =
@@ -20,9 +23,15 @@ export default function CartContextProvider(props) {
     toast.error(`${msg}: ${errorMsg}`);
   }
 
+  function getHeaders() {
+    return {
+      token: localStorage.getItem('userToken'),
+    };
+  }
+
   function getLoggedUserCart() {
     return axios
-      .get(`https://ecommerce.routemisr.com/api/v1/cart`, { headers })
+      .get(`https://ecommerce.routemisr.com/api/v1/cart`, { headers: getHeaders() })
       .then((res) => {
         setNumOfCartItems(res?.data?.numOfCartItems || 0);
         return res;
@@ -40,7 +49,7 @@ export default function CartContextProvider(props) {
 
   function addProductToCart(productId) {
     return axios
-      .post(`https://ecommerce.routemisr.com/api/v1/cart`, { productId }, { headers })
+      .post(`https://ecommerce.routemisr.com/api/v1/cart`, { productId }, { headers: getHeaders() })
       .then((res) => {
         toast.success('Product added to cart');
         getLoggedUserCart();
@@ -54,7 +63,7 @@ export default function CartContextProvider(props) {
 
   function deleteProductItem(productId) {
     return axios
-      .delete(`https://ecommerce.routemisr.com/api/v1/cart/${productId}`, { headers })
+      .delete(`https://ecommerce.routemisr.com/api/v1/cart/${productId}`, { headers: getHeaders() })
       .then((res) => {
         toast.success('Product removed from cart');
         getLoggedUserCart();
@@ -68,7 +77,11 @@ export default function CartContextProvider(props) {
 
   function updateCartItemCount(productId, count) {
     return axios
-      .put(`https://ecommerce.routemisr.com/api/v1/cart/${productId}`, { count }, { headers })
+      .put(
+        `https://ecommerce.routemisr.com/api/v1/cart/${productId}`,
+        { count },
+        { headers: getHeaders() }
+      )
       .then((res) => {
         toast.success('Quantity updated');
         getLoggedUserCart();
@@ -82,7 +95,7 @@ export default function CartContextProvider(props) {
 
   function deleteAll() {
     return axios
-      .delete(`https://ecommerce.routemisr.com/api/v1/cart`, { headers })
+      .delete(`https://ecommerce.routemisr.com/api/v1/cart`, { headers: getHeaders() })
       .then((res) => {
         toast.success('Cart cleared');
         setNumOfCartItems(0);
@@ -99,11 +112,11 @@ export default function CartContextProvider(props) {
       .post(
         `https://ecommerce.routemisr.com/api/v1/orders/${cartId}`,
         { shippingAddress: address },
-        { headers }
+        { headers: getHeaders() }
       )
       .then((res) => {
         toast.success('Cash order created successfully!');
-        getLoggedUserCart(); // update cart count
+        getLoggedUserCart();
         return res;
       })
       .catch((err) => {

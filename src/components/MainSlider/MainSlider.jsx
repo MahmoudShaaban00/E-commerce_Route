@@ -21,7 +21,7 @@ export default function MainSlider() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 px-2 md:px-10 mt-4">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 px-2 md:px-10 mt-12">
       {/* Main Slider */}
       <div className="md:col-span-3">
         <Slider {...settings}>
